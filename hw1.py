@@ -2,38 +2,49 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
+#variables
 green = np.uint8([[[0, 255, 0]]])
-
 hsv_green = cv2.cvtColor(green, cv2.COLOR_BGR2HSV)
-
-#reading images from path
-studio_img = cv2.imread("studio4.jpg")
-background_img = cv2.imread("background3.JPG")
-
-#converting to rgb
-studio_img = cv2.cvtColor(studio_img, cv2.COLOR_BGR2RGB)
-background_img = cv2.cvtColor(background_img, cv2.COLOR_BGR2RGB)
-
-#converting to hsv format
-studios_hsv = cv2.cvtColor(studio_img, cv2.COLOR_BGR2HSV)
-
-#setting lower and upper green boundries
 lower_green = np.array([40, 70, 70])
 upper_green = np.array([80, 255, 255])
 
+
+#reading images from path
+input_img = cv2.imread("input.jpg")
+background_img = cv2.imread("background.jpg")
+
+#converting to rgb
+input_img = cv2.cvtColor(input_img, cv2.COLOR_BGR2RGB)
+width = input_img.shape[1]
+height = input_img.shape[0]
+dim = (width, height)
+
+#background_img = cv2.cvtColor(background_img, cv2.COLOR_BGR2RGB)
+background_img = cv2.resize(background_img, dim, interpolation=cv2.INTER_AREA)
+
+
+#converting to hsv format
+studios_hsv = cv2.cvtColor(input_img, cv2.COLOR_BGR2HSV)
+
 #creating mask to detect green within the defined borders and apply bitwise operator on the image
 mask = cv2.inRange(studios_hsv, lower_green, upper_green)
-res = cv2.bitwise_or(studio_img, studio_img, mask)
+res = cv2.bitwise_or(input_img, input_img, mask)
 
-plt.imshow(mask, cmap="gray")
+
+#laying mask over background image
+background_masked = cv2.bitwise_and(background_img, background_img, mask=mask)
+
+#inverting mask to get the opposite
+mask = np.invert(mask)
+
+#removing green from input
+green_removed = cv2.bitwise_or(input_img, input_img, mask=mask)
+green_removed = cv2.cvtColor(green_removed, cv2.COLOR_BGR2RGB)
+
+#merging, saving and showing the image
+merged = cv2.bitwise_or(background_masked, green_removed)
+cv2.imwrite("output.jpg", merged)
+plt.imshow(cv2.cvtColor(merged, cv2.COLOR_BGR2RGB))
 plt.show()
 
-'''
-TODO:   1) figure out how to blend background in var res after the mask has been applied
-        2) remove green from original pic
-        3) the last step is probably applying bitwise_or on images from (1) and (2)
-        4) add argsparse to make it possible for the script to run on images from directory given as input
-'''
-
-#cv2.imwrite("mask.png", mask)
 
