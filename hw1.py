@@ -1,8 +1,16 @@
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import argparse
+import os.path
 
 ''' Noah Solomon 320440621'''
+
+# parser
+parser = argparse.ArgumentParser()
+parser.add_argument('--input', type=str, help='type input image name with format')
+parser.add_argument('--background', type=str, help='type background image name with format')
+args = parser.parse_args()
 
 # variables
 green = np.uint8([[[0, 255, 0]]])
@@ -10,10 +18,17 @@ hsv_green = cv2.cvtColor(green, cv2.COLOR_BGR2HSV)
 lower_green = np.array([40, 70, 70])
 upper_green = np.array([80, 255, 255])
 
-
 # reading images from path
-input_img = cv2.imread("input.jpg")
-background_img = cv2.imread("background.jpg")
+try:
+    if not os.path.exists(args.input):
+        raise Exception(args.input)
+    if not os.path.exists(args.background):
+        raise Exception(args.background)
+except Exception as err:
+    exit("'{}' doesn't exist in default path".format(err))
+
+input_img = cv2.imread(args.input)
+background_img = cv2.imread(args.background)
 
 # converting to rgb and getting input image's size for resize
 input_img = cv2.cvtColor(input_img, cv2.COLOR_BGR2RGB)
@@ -44,5 +59,3 @@ merged = cv2.bitwise_or(background_masked, green_removed)
 cv2.imwrite("output.jpg", merged)
 plt.imshow(cv2.cvtColor(merged, cv2.COLOR_BGR2RGB))
 plt.show()
-
-
