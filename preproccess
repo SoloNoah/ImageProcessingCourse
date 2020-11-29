@@ -1,0 +1,41 @@
+import cv2
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+import numpy as np
+import argparse
+import os.path
+
+def grey_scale(path, name):
+    img = cv2.imread(path,0)
+    return img
+
+def padding(img):
+    h, w = img.shape[:2]
+    dif = abs((h-w)//2)
+    dim = (40, 40)
+    if( h > w):
+        #padding added to left and right
+        img = cv2.copyMakeBorder(img, 0, 0, dif, dif, cv2.BORDER_CONSTANT, value=255)
+
+    elif(h < w):
+        #padding top and bottom
+        img =  cv2.copyMakeBorder(img, dif, dif, 0, 0, cv2.BORDER_CONSTANT, value=255)
+    return cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+
+def traverse_folder(path):
+    for cur_path, directories, files in os.walk(path):
+        for file in files:
+            try:
+                img_path = os.path.join( cur_path, file)
+                if not os.path.exists(img_path):
+                    raise Exception("Path doesn't exist")
+                img = grey_scale(img_path, file)
+                img = padding(img)
+                cv2.imwrite(img_path, img)
+            except Exception as err:
+                print("{} " .format(err))
+
+
+
+path = "TRAIN"
+traverse_folder(path)
