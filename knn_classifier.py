@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 
 
+'''Authors: Emilia Zorin, Noah Solomon'''
 def extract_hog(filename):
     print(f"[Extracting Hogs] start time: {datetime.now()}")
     hog_list, hog_label = [], []
@@ -30,7 +31,7 @@ def chi_square(h1, h2):
     return 0.5 * np.sum((h1 - h2) ** 2 / (h1 + h2 + 1e-6))
 
 
-def create_model(type, pow=None):
+def create_best_model(type, pow=None):
     max_score = 0
     k_max = -1
     best_model = 0
@@ -44,6 +45,7 @@ def create_model(type, pow=None):
             best_model = knn
     return best_model, k_max, max_score
 
+
 def create_report(tags, preds):
     report = classification_report(tags, preds, output_dict=True)
     cf = confusion_matrix(tags, preds)
@@ -51,8 +53,19 @@ def create_report(tags, preds):
     return cf, cr
 
 
+def write2csv(cmat, cr, type, k_max):
+    file_name = type + "_" + "results.csv"
+    cr.to_csv(file_name)
+    with open(file_name, "a") as csvfile:
+        csvfile.write(f"\n *** K {k_max} NEIGHBORS WITH EUCLIDEAN DISTANCE *** \n")
+        csvfile.write(np.array2string(cmat, separator=', '))
+
+
+print("--------TRAIN--------")
+start = datetime.now()
 train_filename = "Preprocessed_Train"
 test_filename = "Preprocessed_Test"
+
 hog_list, hog_label = extract_hog(train_filename)
 
 print(f"[Splitting data for training] start time: {datetime.now()}")
@@ -65,12 +78,12 @@ model_score_euclid, model_score_chi = [], []
 euclid_dist = DistanceMetric.get_metric('euclidean')
 chi = chi_square
 print(f"[Finding Euclid model] start time: {datetime.now()}")
-best_model_euclid, k_max_euclid, max_euclid = create_model('euclidean')
+best_model_euclid, k_max_euclid, max_euclid = create_best_model('euclidean')
 print(f"[Found best euclidean model] end time: {datetime.now()}")
 
 print(f"[Finding Chi model] start time: {datetime.now()}")
 
-best_model_chi, k_max_chi, max_chi = create_model(chi)
+best_model_chi, k_max_chi, max_chi = create_best_model(chi)
 print(f"[Found best Chi model] end time: {datetime.now()}")
 
 print("-------------Prediction---------")
@@ -78,23 +91,21 @@ print(f"[Prediction] start time: {datetime.now()}")
 
 pred_imgs, pred_tags = extract_hog(test_filename)
 
+print(f"[Calculating predictions for models] start time: {datetime.now()}")
+
 euclid_pred = best_model_euclid.predict(pred_imgs)
 chi_pred = best_model_chi.predict(pred_imgs)
+print(f"[Calculating predictions for models] end time: {datetime.now()}")
 
 print(f"[Creating report] start time: {datetime.now()}")
 
 euclid_cmat, euclidean_cr = create_report(pred_tags, euclid_pred)
 chi_cmat, chi_cr = create_report(pred_tags, chi_pred)
 
-def write2csv(cmat, cr, type, k_max):
-    file_name = type + "_" + "results.csv"
-    cr.to_csv(file_name)
-    with open(file_name, "a") as csvfile:
-        csvfile.write(f"\n *** K {k_max} NEIGHBORS WITH EUCLIDEAN DISTANCE *** \n")
-        csvfile.write(np.array2string(cmat, separator=', '))
-
 write2csv(euclid_cmat, euclidean_cr, 'euclidean', k_max_euclid)
 write2csv(chi_cmat, chi_cr, 'chi', k_max_chi)
 
 print(f"[Creating report] end time: {datetime.now()}")
 print(f"[Prediction] end time: {datetime.now()}")
+
+print("The knn_classifier.py script ran {}".format(datetime.now() - start))

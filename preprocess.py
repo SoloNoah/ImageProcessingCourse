@@ -1,6 +1,9 @@
+import argparse
 from datetime import datetime
 import cv2
 import os.path
+
+'''Authors: Emilia Zorin, Noah Solomon'''
 
 
 def grey_scale(path):
@@ -42,12 +45,19 @@ def traverse_folder(path, save_path):
 
 
 def main():
-    test_path, train_path = "TEST", "TRAIN"
+    parse = argparse.ArgumentParser()
+    parse.add_argument("path", metavar='path', choices=['TEST', 'TRAIN'], type=str,
+                       help="Choose path for preprocessing.")
+    args = parse.parse_args()
+
+    start = datetime.now()
     print(f"[Preprocessing] start time: {datetime.now()}")
-    process_test, process_train = "Preprocessed_Test", "Preprocessed_Train"
-    traverse_folder(train_path, process_train)
-    traverse_folder(test_path, process_test)
+    process_path = "Preprocessed_" + args.path
+
+    traverse_folder(args.path, process_path)
     print(f"[Preprocessing] end time: {datetime.now()}")
+
+    print("The preprocess.py script ran {}".format(datetime.now() - start))
 
 
 main()
