@@ -63,8 +63,8 @@ def write2csv(cmat, cr, type, k_max):
 
 print("--------TRAIN--------")
 start = datetime.now()
-train_filename = "Preprocessed_Train"
-test_filename = "Preprocessed_Test"
+train_filename = "Preprocessed_TRAIN"
+test_filename = "Preprocessed_TEST"
 
 hog_list, hog_label = extract_hog(train_filename)
 
