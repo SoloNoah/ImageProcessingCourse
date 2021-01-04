@@ -1,35 +1,72 @@
 import cv2
 import os.path
 from datetime import datetime
+import numpy as np
 import argparse
 import matplotlib.pyplot as plt
 
+start = datetime.now()
 axes = []
 image_left_path = "1/left.jpg"
-image_right_path = "1/right.jpg"
+image_right_path = "1   /right.jpg"
+
+print(f"[Reading images and converting] start time: {datetime.now()}")
 img_left = cv2.imread(image_left_path)
 img_right = cv2.imread(image_right_path)
+
+'''change height only later on in a more efficient way'''
+height_panorama, w_left = img_left.shape[:2]
+h_right, w_right = img_right.shape[:2]
+dim = (w_left, height_panorama)
+
+
+width_panorama = w_left + w_right
+img_right = cv2.resize(img_right, dim, interpolation=cv2.INTER_AREA)
+
 left_gray = cv2.cvtColor(img_left, cv2.COLOR_BGR2GRAY)
 right_gray = cv2.cvtColor(img_right, cv2.COLOR_BGR2GRAY)
 
-sift = cv2.xfeatures2d.SIFT_create()
-(kps_left, descs_left) = sift.detectAndCompute(left_gray, None)
-(kps_right, descs_right) = sift.detectAndCompute(right_gray, None)
+print(f"[Reading images and converting] end time: {datetime.now()}")
 
-bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
-matches = bf.match(descs_left, descs_right)
-matches = sorted(matches, key=lambda x: x.distance)
-img3 = cv2.drawMatches(img_left, kps_left, img_right, kps_right,matches[:50], img_right, flags=2)
-plt.imshow(img3),plt.show()
-''' add_subplot gets rows, columns and index indicating where the image will be shown
-can be refactored into a function reading both images from folder in a loop or in a better way
-will work for now'''
-'''fig = plt.figure()
-axes.append(fig.add_subplot(1, 2, 1))
-plt.imshow(left_gray)
-axes.append(fig.add_subplot(1, 2, 2))
-plt.imshow(right_gray)
-plt.show()'''
+
+print(f"[Calculating sift] start time: {datetime.now()}")
+
+sift = cv2.xfeatures2d.SIFT_create()
+print(f"[Calculating sift for left image] start time: {datetime.now()}")
+(kps_left, descs_left) = sift.detectAndCompute(left_gray, None)
+print(f"[Calculating sift for left image] end time: {datetime.now()}")
+print(f"[Calculating sift for right image] start time: {datetime.now()}")
+(kps_right, descs_right) = sift.detectAndCompute(right_gray, None)
+print(f"[Calculating sift for right image] end time: {datetime.now()}")
+
+print(f"[Brute force matching] start time: {datetime.now()}")
+
+bf = cv2.BFMatcher()
+raw_matches = bf.knnMatch(descs_left, descs_right, k=2)
+matches = []
+ratio = 0.85
+for m1, m2 in raw_matches:
+    if m1.distance < ratio * m2.distance:
+        matches.append(m1)
+
+print(f"[Brute force matching] end time: {datetime.now()}")
+
+print(f"[Matching lines] start time: {datetime.now()}")
+
+img_matches = cv2.drawMatches(img_left, kps_left, img_right, kps_right, matches, None)
+plt.imshow(img_matches), plt.show()
+print(f"[Matching lines] end time: {datetime.now()}")
+
+
+src_pts = np.float32([kps_left[m.queryIdx].pt for m in matches]).reshape(-1,1,2)
+dst_pts = np.float32([kps_right[m.trainIdx].pt for m in matches]).reshape(-1,1,2)
+
+H, status = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+res = cv2.warpPerspective(img_right, H, (width_panorama, height_panorama))
+
+cv2.imwrite("result.jpg", res)
+print(f"[Total time] end time: {start - datetime.now()}")
+
 
 
 
