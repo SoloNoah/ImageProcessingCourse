@@ -5,6 +5,14 @@ import numpy as np
 import argparse
 import matplotlib.pyplot as plt
 
+
+'''
+TO DO:
+1) NEED TO MAKE CODE PRITTIER WITH DOCUMENTATION
+2) GET BETTER UNDERSTANDING OF THE THEORY BECAUSE I'M NOT FULLY UNDERSTANDING WHAT EXACTLY I'M DOING.
+3) CHECK STAGE 6 IN ASSIGNMENT. SOMETHING IS WRONG THERE.
+
+'''
 start = datetime.now()
 axes = []
 image_left_path = "1/left.jpg"
