@@ -16,7 +16,7 @@ TO DO:
 start = datetime.now()
 axes = []
 image_left_path = "1/left.jpg"
-image_right_path = "1   /right.jpg"
+image_right_path = "1/right.jpg"
 
 print(f"[Reading images and converting] start time: {datetime.now()}")
 img_left = cv2.imread(image_left_path)
