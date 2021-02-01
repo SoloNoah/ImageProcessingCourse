@@ -45,6 +45,8 @@ def main():
     '''
     reading image and saving the ratio of the original picture.
     later we will use this ratio to convert the contours found to the scale of the original image.
+    changing the size of the picture to speed up the program with respect to the original ratio.
+    
     '''
     image = readImage(args.input)
     ratio = image.shape[0] / 1000.0
